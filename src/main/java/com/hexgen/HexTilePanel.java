@@ -1,8 +1,27 @@
 package com.hexgen;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import javax.swing.JPanel;
+import javax.swing.JViewport;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Image;
+import com.lowagie.text.pdf.PdfWriter;
 
 public class HexTilePanel extends JPanel {
   private int radius = 30;
@@ -38,6 +57,33 @@ public class HexTilePanel extends JPanel {
     paintLosetas(20, g2, x, y, pageWidth, pageHeight);
   }
 
+  
+  public void exportFolioToPDF(File outputFile) {
+    Object[] dim = dimensions(true);
+    int pageWidth = (int) dim[0];
+    int pageHeight = (int) dim[1];
+
+    BufferedImage image = new BufferedImage(pageWidth, pageHeight, BufferedImage.TYPE_INT_RGB);
+    Graphics2D g2 = image.createGraphics();
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    paintFolioOnly(g2, 0, 0);
+    g2.dispose();
+
+    try {
+      Document doc = new Document(PageSize.A4);
+      PdfWriter.getInstance(doc, new FileOutputStream(outputFile));
+      doc.open();
+
+      Image img = Image.getInstance(image, null);
+      img.scaleToFit(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+      img.setAbsolutePosition(0, 0);
+      doc.add(img);
+      doc.close();
+    } catch (IOException | DocumentException e) {
+      e.printStackTrace();
+    }
+  }
   
   @Override
   protected void paintComponent(Graphics g) {

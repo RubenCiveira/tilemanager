@@ -8,10 +8,12 @@ import java.awt.image.BufferedImage;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.File;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -69,16 +71,19 @@ public class ControlPanel extends JPanel {
     JButton printButton = new JButton("Imprimir");
     printButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     printButton.addActionListener(e -> {
-        // TODO: lógica de impresión
-        
       print(hexPanel);
     });
     
     JButton exportPdfButton = new JButton("Exportar PDF");
     exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     exportPdfButton.addActionListener(e -> {
-        // TODO: lógica de exportación
-        System.out.println("Exportar como PDF");
+      JFileChooser chooser = new JFileChooser();
+      chooser.setDialogTitle("Guardar como PDF");
+      chooser.setSelectedFile(new File("losetas.pdf"));
+      if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+          File output = chooser.getSelectedFile();
+          hexPanel.exportFolioToPDF(output);
+      }
     });
 
     buttonRow.add(printButton);
@@ -119,4 +124,6 @@ public class ControlPanel extends JPanel {
         }
     }
   }
+  
+  
 }
