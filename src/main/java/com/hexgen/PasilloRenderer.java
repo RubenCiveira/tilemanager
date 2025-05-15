@@ -25,12 +25,12 @@ public class PasilloRenderer {
     Random rnd = new Random();
 
     Set<Integer> ladosConPuerta = new HashSet<>();
-    
+
     List<Integer> posiblesSalidas = new ArrayList<>(List.of(1, 2, 3, 4, 5));
     Collections.shuffle(posiblesSalidas);
-    
+
     Map<Integer, Color> colorPorLado = new HashMap<>();
-    
+
     // dibujar entrada
     ladosConPuerta.add(entradaLado);
 
@@ -38,8 +38,8 @@ public class PasilloRenderer {
     Point2D pEntrada = puntoCentralDelLado(cx, cy, radius, layers, entradaLado, flatTop);
     drawAlignedSquare(g2, pEntrada.getX(), pEntrada.getY(), angleRadEntrada, Color.BLUE);
     colorPorLado.put(entradaLado, Color.BLUE);
-    
-    if (rnd.nextDouble() < mainProbability ) {
+
+    if (rnd.nextDouble() < mainProbability) {
       int ladoFrente = (entradaLado + 3) % 6;
       colorPorLado.put(ladoFrente, Color.GREEN);
       ladosConPuerta.add(ladoFrente);
@@ -48,24 +48,24 @@ public class PasilloRenderer {
       Point2D pSalida = puntoCentralDelLado(cx, cy, radius, layers, ladoFrente, flatTop);
       drawAlignedSquare(g2, pSalida.getX(), pSalida.getY(), angleRadSalida, Color.GREEN);
     }
-    
+
     while (!posiblesSalidas.isEmpty()) {
       double num = rnd.nextDouble();
       double currentProb = 0;
       switch (ladosConPuerta.size()) {
-        case 1: 
-          currentProb = mainProbability; 
+        case 1:
+          currentProb = mainProbability;
           break;
         case 2:
-          currentProb = secondProbability; 
+          currentProb = secondProbability;
           break;
         case 3:
-          currentProb = terthProbability; 
+          currentProb = terthProbability;
           break;
       };
       boolean ok = num < currentProb;
       int salidaLado = posiblesSalidas.remove(0);
-      if( ok ) {
+      if (ok) {
         ladosConPuerta.add(salidaLado);
         colorPorLado.put(salidaLado, Color.RED);
 
@@ -84,12 +84,12 @@ public class PasilloRenderer {
         drawAlignedSquare(g2, p.getX(), p.getY(), angle, Color.BLACK);
       }
     }
-    
+
     pintaTransiciones(g2, colorPorLado, cx, cy, radius, layers, flatTop);
   }
-  
-  private static void pintaTransiciones(Graphics2D g2, Map<Integer, Color> colorPorLado, int cx, int cy, int radius, int layers,
-      boolean flatTop) {
+
+  private static void pintaTransiciones(Graphics2D g2, Map<Integer, Color> colorPorLado, int cx,
+      int cy, int radius, int layers, boolean flatTop) {
     for (int i = 0; i < 6; i++) {
       int j = (i + 1) % 6;
 
@@ -103,20 +103,19 @@ public class PasilloRenderer {
       g2.setColor(mixto);
       g2.setStroke(new BasicStroke(6));
       g2.drawLine((int) pi.getX(), (int) pi.getY(), (int) pj.getX(), (int) pj.getY());
-  }
+    }
   }
 
-  private static Point2D puntoCentralDelLado(int cx, int cy, int radius, int layers, int lado,
-      boolean flatTop) {
-    double angleDeg = flatTop ? (60 * lado) : (60 * lado - 30);
+  private static Point2D puntoCentralDelLado(int cx, int cy, int radius, int layers, int lado, boolean flatTop) {
+    double angleDeg = flatTop ? (60 * lado + 30) : (60 * lado);
     double angleRad = Math.toRadians(angleDeg);
 
-    double escala = flatTop ? radius * 3.0 / 2 * layers : radius * Math.sqrt(3) * layers;
+    double distance = radius * layers * Math.sqrt(3) / 2.0;
+    double dx = distance * Math.cos(angleRad);
+    double dy = distance * Math.sin(angleRad);
 
-    double dx = escala * Math.cos(angleRad);
-    double dy = escala * Math.sin(angleRad);
     return new Point2D.Double(cx + dx, cy + dy);
-  }
+}
 
   private static void drawAlignedSquare(Graphics2D g2, double cx, double cy, double angleRad,
       Color color) {
@@ -131,14 +130,14 @@ public class PasilloRenderer {
   }
 
   private static double getAngleRadians(int lado, boolean flatTop) {
-    double angleDeg = flatTop ? (60 * lado) : (60 * lado - 30);
+    double angleDeg = flatTop ? (60 * lado + 30) : (60 * lado);
     return Math.toRadians(angleDeg);
   }
-  
+
   private static Color mezclar(Color c1, Color c2) {
     int r = (c1.getRed() + c2.getRed()) / 2;
     int g = (c1.getGreen() + c2.getGreen()) / 2;
     int b = (c1.getBlue() + c2.getBlue()) / 2;
     return new Color(r, g, b);
-}
+  }
 }

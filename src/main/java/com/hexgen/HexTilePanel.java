@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -46,7 +45,7 @@ public class HexTilePanel extends JPanel {
   }
 
   public void setRadius(int radius) {
-    this.radius = (int) Math.floor( 1.65 * (double)radius );
+    this.radius = (int) Math.floor(1.65 * (double) radius);
     refresh();
   }
 
@@ -61,25 +60,8 @@ public class HexTilePanel extends JPanel {
   }
 
   public List<BufferedImage> paintFolioOnly(int dpi) {
-    List<BufferedImage> images = new ArrayList<>();
-    Object[] dim = dimensions(dpi, false);
-    int pageWidth = (int) dim[0];
-    int pageHeight = (int) dim[1];
-    int foliosNecesarios = (int)dim[2];
-    int printed = 0;
-    for (int i = 0; i < foliosNecesarios && printed < totalToPrint; i++) {
-      BufferedImage image = new BufferedImage(pageWidth, pageHeight, BufferedImage.TYPE_INT_RGB);
-      Graphics2D ig2 = image.createGraphics();
-      ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      ig2.setColor(Color.WHITE);
-      ig2.fillRect(0, 0, pageWidth, pageHeight);
-      printed = paintLosetas(20, ig2, 0, 0, pageWidth, pageHeight, printed);
-      ig2.dispose();
-      images.add( image );
-    }
-    return images;
+    return generateImages(dpi, false);
   }
-
 
   public void exportFolioToPDF(File outputFile) {
     try {
@@ -87,11 +69,11 @@ public class HexTilePanel extends JPanel {
       PdfWriter.getInstance(doc, new FileOutputStream(outputFile));
       doc.open();
       List<BufferedImage> images = paintFolioOnly(72);
-      for(BufferedImage buff: images) {
+      for (BufferedImage buff : images) {
         Image img = Image.getInstance(buff, null);
         img.scaleToFit(PageSize.A4.getWidth(), PageSize.A4.getHeight());
         img.setAbsolutePosition(0, 0);
-        doc.newPage(); 
+        doc.newPage();
         doc.add(img);
       }
       doc.close();
@@ -106,14 +88,14 @@ public class HexTilePanel extends JPanel {
     Object[] dim = dimensions(72, true);
     int pageWidth = (int) dim[0];
     int pageHeight = (int) dim[1];
-    int foliosNecesarios = (int)dim[2];
+    int foliosNecesarios = (int) dim[2];
     Insets contentMargin = (Insets) dim[3];
     Graphics2D g2 = (Graphics2D) g.create();
 
     g2.setColor(new Color(220, 220, 220));
     g2.fillRect(0, 0, getWidth(), getHeight());
 
-    for (int i = 0; i < foliosNecesarios; i++) {
+    for (int i = 0; i < renderedPages.size(); i++) {
       BufferedImage img = renderedPages.get(i);
       int pageX = contentMargin.left;
 
@@ -123,19 +105,20 @@ public class HexTilePanel extends JPanel {
 
       g2.setColor(Color.BLACK);
       g2.drawRect(pageX, pageY, pageWidth, pageHeight);
-      
+
       g2.drawImage(img, pageX, pageY, this);
     }
     g2.dispose();
-    
-    int altura = contentMargin.top + contentMargin.bottom + foliosNecesarios * (pageHeight + contentMargin.bottom);
+
+    int altura = contentMargin.top + contentMargin.bottom
+        + foliosNecesarios * (pageHeight + contentMargin.bottom);
     setPreferredSize(new Dimension(pageWidth + contentMargin.left + contentMargin.right, altura));
   }
-  
-  
+
+
   private int paintLosetas(int margin, Graphics2D g2, int x0, int y0, int folioWidth,
       int folioHeight, int startIndex) {
-    int spacing = 10;
+    int spacing = 0;
 
     int usableWidth = folioWidth - 2 * margin;
     int usableHeight = folioHeight - 2 * margin;
@@ -144,7 +127,7 @@ public class HexTilePanel extends JPanel {
     int losetaHeight = getLosetaAlto();
 
     int cols = Math.max(1, (usableWidth + spacing) / (losetaWidth + spacing));
-    int rows = Math.max(1, (usableHeight + spacing)/ (losetaHeight + spacing));
+    int rows = Math.max(1, (usableHeight + spacing) / (losetaHeight + spacing));
 
     // calcular el espacio real ocupado
     int totalWidth = cols * losetaWidth + (cols - 1) * spacing;
@@ -170,20 +153,17 @@ public class HexTilePanel extends JPanel {
   }
 
   private int getLosetaAncho() {
-    return flatTop ? (int) (radius * 3.0 * layers) + radius
-        : (int) (radius * Math.sqrt(3) * (2 * layers + 1));
+    int sz = layers; // o layers, si aún usas ese nombre
+    return flatTop ? (int) (radius * 1.2 * (2 * sz - 1))
+        : (int) (radius * Math.sqrt(3) * (layers + 0.5));
   }
 
   private int getLosetaAlto() {
-    return flatTop ? (int) (radius * Math.sqrt(3) * (2 * layers + 1))
-        : (int) (radius * 3.0 * layers) + radius;
+    int sz = layers;
+    return flatTop ? (int) (radius * Math.sqrt(3) * (layers + 0.5))
+        : (int) (radius * 1.2 * (2 * sz - 1));
   }
 
-
-  private Object[] dimensions(boolean withMargin) {
-    return dimensions(72, withMargin);
-  }
-  
   private Object[] dimensions(int dpi, boolean withMargin) {
     int pageWidth = (int) (210 * dpi / 25.4); // A4 = 210mm
     int pageHeight = (int) (297 * dpi / 25.4); // A4 = 297mm
@@ -199,7 +179,7 @@ public class HexTilePanel extends JPanel {
       // Usar para centrar el folio
     }
 
-    int margin = withMargin ? 20 : 0;
+    int margin = withMargin ? 0 : 0;
 
     int marginX = Math.max((availableWidth - pageWidth) / 2, margin);
     int marginY = Math.max((availableHeight - pageHeight) / 2, margin);
@@ -208,7 +188,7 @@ public class HexTilePanel extends JPanel {
 
     int losetaWidth = getLosetaAncho();
     int losetaHeight = getLosetaAlto();
-    int spacing = 10;
+    int spacing = 0;
 
     int usableWidth = pageWidth - 2 * margin;
     int usableHeight = pageHeight - 2 * margin;
@@ -216,18 +196,15 @@ public class HexTilePanel extends JPanel {
     int cols = Math.max(1, (usableWidth + spacing) / (losetaWidth + spacing));
     int rows = Math.max(1, (usableHeight + spacing) / (losetaHeight + spacing));
     
-    if( losetaWidth == 0 ) {
-      cols = 2;
-    }
-    if( losetaHeight == 0 ) {
-      rows = 2;
-    }
+    System.out.println("Calculando w a " + usableWidth + " entre " + losetaWidth + " = " + ( usableWidth / losetaWidth )  );
+    System.out.println("Calculando h a " + usableHeight + " entre " + losetaHeight + " = " + ( usableHeight / losetaHeight )  );
     
     int losetasPorFolio = cols * rows;
     int foliosNecesarios = (int) Math.ceil((double) totalToPrint / losetasPorFolio);
-    
+
     return new Object[] {pageWidth, pageHeight, foliosNecesarios, contentMargin};
   }
+
 
   private void drawLoseta(Graphics2D g2, int cx, int cy) {
     setBackground(Color.WHITE);
@@ -237,14 +214,12 @@ public class HexTilePanel extends JPanel {
     g2.setStroke(new BasicStroke(1));
 
     // Creamos el contorno del hexágono exterior como Shape
-    Shape clipHex = buildOuterBoundaryShape(cx, cy, radius, layers);
-    g2.setClip(clipHex); // cualquier dibujo fuera se recorta automáticamente
-
+    clipOuterBoundary(g2, cx, cy, radius, layers);
     for (int q = -layers; q <= layers; q++) {
       int r1 = Math.max(-layers, -q - layers);
       int r2 = Math.min(layers, -q + layers);
       for (int r = r1; r <= r2; r++) {
-        Point p = HexUtils.hexToPixel(q, r, radius, flatTop);
+        Point p = HexUtils.hexToPixel(q, r, radius, flatTop, true);
         drawHex(g2, cx + p.x, cy + p.y, radius);
       }
     }
@@ -252,95 +227,68 @@ public class HexTilePanel extends JPanel {
     PasilloRenderer.drawPasilloDecoracion(g2, cx, cy, radius, layers, flatTop);
   }
 
-  private void drawOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
-    int[][] directions = flatTop ? new int[][] {{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-        : new int[][] {{1, 0}, {0, -1}, {-1, -1}, {-1, 0}, {0, 1}, {1, 1}};
-
-    Path2D hex = new Path2D.Double();
-
-    for (int i = 0; i < 6; i++) {
-      int dq = directions[i][0];
-      int dr = directions[i][1];
-      int q = dq * layers;
-      int r = dr * layers;
-      Point p = HexUtils.hexToPixel(q, r, radius, flatTop);
-      double x = cx + p.x;
-      double y = cy + p.y;
-      if (i == 0)
-        hex.moveTo(x, y);
-      else
-        hex.lineTo(x, y);
+  private Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
+      boolean flatTop) {
+    if (inner && layers % 2 != 0) {
+      cx -= radius;
+    } else if (inner) {
+      cx += radius;
     }
 
-    hex.closePath();
-    g2.setColor(Color.BLACK);
-    g2.setStroke(new BasicStroke(2));
-    g2.draw(hex);
-  }
-
-  private Shape buildOuterBoundaryShape(int cx, int cy, int radius, int layers) {
-    int[][] directions = flatTop ? new int[][] {{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-        : new int[][] {{1, 0}, {0, -1}, {-1, -1}, {-1, 0}, {0, 1}, {1, 1}};
-
-    Path2D hex = new Path2D.Double();
-
-    for (int i = 0; i < 6; i++) {
-      int q = directions[i][0] * layers;
-      int r = directions[i][1] * layers;
-      Point p = HexUtils.hexToPixel(q, r, radius, flatTop);
-      double x = cx + p.x;
-      double y = cy + p.y;
-      if (i == 0)
-        hex.moveTo(x, y);
-      else
-        hex.lineTo(x, y);
-    }
-
-    hex.closePath();
-    return hex;
-  }
-
-
-  private void drawHex(Graphics2D g2, int x, int y, int radius) {
     Path2D hex = new Path2D.Double();
     for (int i = 0; i < 6; i++) {
       double angle = Math.toRadians(flatTop ? (60 * i) : (60 * i - 30));
-      int dx = (int) (x + radius * Math.cos(angle));
-      int dy = (int) (y + radius * Math.sin(angle));
+      double dx = cx + radius * Math.cos(angle);
+      double dy = cy + radius * Math.sin(angle);
       if (i == 0)
         hex.moveTo(dx, dy);
       else
         hex.lineTo(dx, dy);
     }
     hex.closePath();
-    g2.draw(hex);
+    return hex;
   }
-  
+
+  private void drawOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
+    g2.draw(generateHexPath(false, cx, cy, radius * layers, flatTop));
+  }
+
+  private void clipOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
+    g2.setClip(generateHexPath(false, cx, cy, radius * layers, flatTop));
+  }
+
+  private void drawHex(Graphics2D g2, int x, int y, int radius) {
+    g2.draw(generateHexPath(true, x, y, radius, flatTop));
+  }
+
   private void refresh() {
     renderedPages.clear();
-    renderedPages.addAll(this.paintFolioOnly(72)); // tu método actual de renderizado
+    renderedPages.addAll(this.generateImages(72, true)); // tu método actual de renderizado
     int totalHeight = renderedPages.size() * renderedPages.get(0).getHeight();
     setPreferredSize(new Dimension(renderedPages.get(0).getWidth(), totalHeight));
     revalidate();
     repaint();
-//    
-//    resize();
-//    revalidate();
-//    repaint();
-//    Container parent = this.getParent();
-//    if( null != parent ) {
-//      parent.repaint(); // fuerza redibujo en scroll
-//    }
   }
   
-  private void resize() {
-    Object[] dim = dimensions(true);
+  private List<BufferedImage> generateImages(int dpi, boolean withMargin) {
+    List<BufferedImage> images = new ArrayList<>();
+    Object[] dim = dimensions(dpi, withMargin);
     int pageWidth = (int) dim[0];
     int pageHeight = (int) dim[1];
-    int foliosNecesarios = (int)dim[2];
-    Insets contentMargin = (Insets) dim[3];
-    int totalHeight = foliosNecesarios * (pageHeight + contentMargin.top + contentMargin.bottom);
-    setPreferredSize(
-        new Dimension(pageWidth + contentMargin.left + contentMargin.right, totalHeight));
+    int foliosNecesarios = (int) dim[2];
+    int printed = 0;
+    for (int i = 0; i < foliosNecesarios && printed < totalToPrint; i++) {
+      BufferedImage image = new BufferedImage(pageWidth, pageHeight, BufferedImage.TYPE_INT_RGB);
+      Graphics2D ig2 = image.createGraphics();
+      ig2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      ig2.setColor(Color.WHITE);
+      ig2.fillRect(0, 0, pageWidth, pageHeight);
+      printed = paintLosetas(0, ig2, 0, 0, pageWidth, pageHeight, printed);
+      ig2.dispose();
+      images.add(image);
+    }
+    return images;
   }
+
+
 }

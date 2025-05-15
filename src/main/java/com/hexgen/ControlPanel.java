@@ -6,8 +6,6 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.Book;
-import java.awt.print.PageFormat;
-import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -33,13 +31,13 @@ public class ControlPanel extends JPanel {
     setPreferredSize(new Dimension(260, 600)); // máximo 1/3 aprox
     setAlignmentY(Component.TOP_ALIGNMENT);
 
-//    JLabel orientationLabel = new JLabel("Orientación:");
-//    String[] orientations = {"Lado arriba", "Punta arriba"};
-//    JComboBox<String> orientationCombo = new JComboBox<>(orientations);
-//    orientationCombo.setSelectedIndex(0);
-//    orientationCombo
-//        .addActionListener(e -> hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0));
-    hexPanel.setFlatTop(true);//orientationCombo.getSelectedIndex() == 0);
+    JLabel orientationLabel = new JLabel("Orientación:");
+    String[] orientations = {"Lado arriba", "Punta arriba"};
+    JComboBox<String> orientationCombo = new JComboBox<>(orientations);
+    orientationCombo.setSelectedIndex(0);
+    orientationCombo
+        .addActionListener(e -> hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0));
+    hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0);
 
 
     JLabel layersLabel = new JLabel("Número de anillos:");
@@ -69,8 +67,8 @@ public class ControlPanel extends JPanel {
     cantidadSpinner.addChangeListener(e -> hexPanel.setTileCount((int) cantidadSpinner.getValue()));
     hexPanel.setTileCount((int) cantidadSpinner.getValue());
 
-//    add(orientationLabel);
-//    add(orientationCombo);
+    add(orientationLabel);
+    add(orientationCombo);
     add(layersLabel);
     add(layerSpinner);
     add(radiusLabel);
@@ -80,8 +78,8 @@ public class ControlPanel extends JPanel {
     add(cantidadLabel);
     add(cantidadSpinner);
 
-//    orientationCombo.setMaximumSize(
-//        new Dimension(Integer.MAX_VALUE, orientationCombo.getPreferredSize().height));
+    orientationCombo.setMaximumSize(
+        new Dimension(Integer.MAX_VALUE, orientationCombo.getPreferredSize().height));
     layerSpinner
         .setMaximumSize(new Dimension(Integer.MAX_VALUE, layerSpinner.getPreferredSize().height));
     radiusSpinner
