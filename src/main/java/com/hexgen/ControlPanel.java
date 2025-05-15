@@ -5,10 +5,14 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.print.Book;
+import java.awt.print.PageFormat;
+import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,51 +33,75 @@ public class ControlPanel extends JPanel {
     setPreferredSize(new Dimension(260, 600)); // máximo 1/3 aprox
     setAlignmentY(Component.TOP_ALIGNMENT);
 
-    JLabel orientationLabel = new JLabel("Orientación:");
-    String[] orientations = {"Lado arriba", "Punta arriba"};
-    JComboBox<String> orientationCombo = new JComboBox<>(orientations);
-    orientationCombo.setSelectedIndex(0);
-    orientationCombo.addActionListener(e -> {
-      boolean flatTop = orientationCombo.getSelectedIndex() == 0;
-      hexPanel.setFlatTop(flatTop);
-    });
+//    JLabel orientationLabel = new JLabel("Orientación:");
+//    String[] orientations = {"Lado arriba", "Punta arriba"};
+//    JComboBox<String> orientationCombo = new JComboBox<>(orientations);
+//    orientationCombo.setSelectedIndex(0);
+//    orientationCombo
+//        .addActionListener(e -> hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0));
+    hexPanel.setFlatTop(true);//orientationCombo.getSelectedIndex() == 0);
+
 
     JLabel layersLabel = new JLabel("Número de anillos:");
     JSpinner layerSpinner = new JSpinner(new SpinnerNumberModel(2, 1, 5, 1));
-    layerSpinner.addChangeListener(e -> {
-      int layers = (int) layerSpinner.getValue();
-      hexPanel.setLayers(layers);
-    });
+    layerSpinner.setValue(3);
+    layerSpinner.addChangeListener(e -> hexPanel.setLayers((int) layerSpinner.getValue()));
+    hexPanel.setLayers((int) layerSpinner.getValue());
 
     JLabel radiusLabel = new JLabel("Tamaño del hexágono:");
     JSpinner radiusSpinner = new JSpinner(new SpinnerNumberModel(30, 10, 100, 1));
-    radiusSpinner.addChangeListener(e -> {
-      int radius = (int) radiusSpinner.getValue();
-      hexPanel.setRadius(radius);
-    });
+    radiusSpinner.setValue(27);
+    radiusSpinner.addChangeListener(e -> hexPanel.setRadius((int) radiusSpinner.getValue()));
+    hexPanel.setRadius( (int) radiusSpinner.getValue());
 
-    add(orientationLabel);
-    add(orientationCombo);
+    JLabel tipoLabel = new JLabel("Tipo de loseta:");
+    String[] tipos = {"Pasillo", "Sala"};
+    JComboBox<String> tipoCombo = new JComboBox<>(tipos);
+    tipoCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, tipoCombo.getPreferredSize().height));
+    tipoCombo.setSelectedIndex(0);
+    tipoCombo.addActionListener(e -> hexPanel.setTileType(tipos[tipoCombo.getSelectedIndex()]));
+    hexPanel.setTileType(tipos[tipoCombo.getSelectedIndex()]);
+
+    JLabel cantidadLabel = new JLabel("Cantidad:");
+    JSpinner cantidadSpinner = new JSpinner(new SpinnerNumberModel(12, 1, 200, 1));
+    cantidadSpinner.setMaximumSize(
+        new Dimension(Integer.MAX_VALUE, cantidadSpinner.getPreferredSize().height));
+    cantidadSpinner.addChangeListener(e -> hexPanel.setTileCount((int) cantidadSpinner.getValue()));
+    hexPanel.setTileCount((int) cantidadSpinner.getValue());
+
+//    add(orientationLabel);
+//    add(orientationCombo);
     add(layersLabel);
     add(layerSpinner);
     add(radiusLabel);
     add(radiusSpinner);
-    
-    orientationCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, orientationCombo.getPreferredSize().height));
-    layerSpinner.setMaximumSize(new Dimension(Integer.MAX_VALUE, layerSpinner.getPreferredSize().height));
-    radiusSpinner.setMaximumSize(new Dimension(Integer.MAX_VALUE, radiusSpinner.getPreferredSize().height));
-    
+    add(tipoLabel);
+    add(tipoCombo);
+    add(cantidadLabel);
+    add(cantidadSpinner);
+
+//    orientationCombo.setMaximumSize(
+//        new Dimension(Integer.MAX_VALUE, orientationCombo.getPreferredSize().height));
+    layerSpinner
+        .setMaximumSize(new Dimension(Integer.MAX_VALUE, layerSpinner.getPreferredSize().height));
+    radiusSpinner
+        .setMaximumSize(new Dimension(Integer.MAX_VALUE, radiusSpinner.getPreferredSize().height));
+    tipoCombo
+        .setMaximumSize(new Dimension(Integer.MAX_VALUE, radiusSpinner.getPreferredSize().height));
+    cantidadSpinner
+        .setMaximumSize(new Dimension(Integer.MAX_VALUE, radiusSpinner.getPreferredSize().height));
+
     add(Box.createVerticalGlue()); // empuja lo siguiente hacia abajo
 
     JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
     buttonRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50)); // altura fija
-    
+
     JButton printButton = new JButton("Imprimir");
     printButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     printButton.addActionListener(e -> {
       print(hexPanel);
     });
-    
+
     JButton exportPdfButton = new JButton("Exportar PDF");
     exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     exportPdfButton.addActionListener(e -> {
@@ -81,8 +109,8 @@ public class ControlPanel extends JPanel {
       chooser.setDialogTitle("Guardar como PDF");
       chooser.setSelectedFile(new File("losetas.pdf"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-          File output = chooser.getSelectedFile();
-          hexPanel.exportFolioToPDF(output);
+        File output = chooser.getSelectedFile();
+        hexPanel.exportFolioToPDF(output);
       }
     });
 
@@ -91,39 +119,41 @@ public class ControlPanel extends JPanel {
 
     add(buttonRow);
   }
-  
+
   private void print(HexTilePanel hexPanel) {
+    List<BufferedImage> pages = hexPanel.paintFolioOnly(72);
+
     PrinterJob job = PrinterJob.getPrinterJob();
     job.setJobName("Imprimir losetas");
+    
+    Book book = new Book();
 
-    job.setPrintable((graphics, pageFormat, pageIndex) -> {
-        if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+    for (BufferedImage img : pages) {
+        Printable page = (graphics, pageFormat, pageIndex) -> {
+            Graphics2D g2d = (Graphics2D) graphics;
+            g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
 
-        Graphics2D g2d = (Graphics2D) graphics;
-        int dpi = 72;
-        int folioWidth = (int)(210 * dpi / 25.4);
-        int folioHeight = (int)(297 * dpi / 25.4);
-        int x = 0; // margen visual que usas en tu panel
-        int y = 0;
+            double scaleX = pageFormat.getImageableWidth() / img.getWidth();
+            double scaleY = pageFormat.getImageableHeight() / img.getHeight();
+            double scale = Math.min(scaleX, scaleY);
+            g2d.scale(scale, scale);
 
-        BufferedImage image = new BufferedImage(folioWidth, folioHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics2D gImage = image.createGraphics();
-        hexPanel.paintFolioOnly(gImage, x, y); // un método que pinte solo el folio
+            g2d.drawImage(img, 0, 0, null);
+            return Printable.PAGE_EXISTS;
+        };
 
-        gImage.dispose();
-        g2d.drawImage(image, 0, 0, null);
-        return Printable.PAGE_EXISTS;
-    });
-
+        book.append(page, job.defaultPage());
+    }
+    job.setPageable(book);
     if (job.printDialog()) {
-        try {
-            job.print();
-        } catch (PrinterException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al imprimir: " + ex.getMessage());
-        }
+      try {
+        job.print();
+      } catch (PrinterException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error al imprimir: " + ex.getMessage());
+      }
     }
   }
-  
-  
+
+
 }
