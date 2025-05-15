@@ -3,6 +3,7 @@ package com.hexgen;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +73,6 @@ public class PasilloRenderer {
         double angleRadSalida = getAngleRadians(salidaLado, flatTop);
         Point2D pSalida = puntoCentralDelLado(cx, cy, radius, layers, salidaLado, flatTop);
         drawAlignedSquare(g2, pSalida.getX(), pSalida.getY(), angleRadSalida, Color.RED);
-
       }
     }
 
@@ -82,6 +82,7 @@ public class PasilloRenderer {
         double angle = getAngleRadians(lado, flatTop);
         Point2D p = puntoCentralDelLado(cx, cy, radius, layers, lado, flatTop);
         drawAlignedSquare(g2, p.getX(), p.getY(), angle, Color.BLACK);
+        pintarMuroOscuro(g2, cx, cy, radius, layers, lado, flatTop);
       }
     }
 
@@ -106,7 +107,8 @@ public class PasilloRenderer {
     }
   }
 
-  private static Point2D puntoCentralDelLado(int cx, int cy, int radius, int layers, int lado, boolean flatTop) {
+  private static Point2D puntoCentralDelLado(int cx, int cy, int radius, int layers, int lado,
+      boolean flatTop) {
     double angleDeg = flatTop ? (60 * lado + 30) : (60 * lado);
     double angleRad = Math.toRadians(angleDeg);
 
@@ -115,7 +117,7 @@ public class PasilloRenderer {
     double dy = distance * Math.sin(angleRad);
 
     return new Point2D.Double(cx + dx, cy + dy);
-}
+  }
 
   private static void drawAlignedSquare(Graphics2D g2, double cx, double cy, double angleRad,
       Color color) {
@@ -139,5 +141,31 @@ public class PasilloRenderer {
     int g = (c1.getGreen() + c2.getGreen()) / 2;
     int b = (c1.getBlue() + c2.getBlue()) / 2;
     return new Color(r, g, b);
+  }
+
+  private static void pintarMuroOscuro(Graphics2D g2, int cx, int cy, int radius, int layers,
+      int lado, boolean flatTop) {
+    int qOffset, rOffset;
+
+    // direcciones axial según orientación
+    if (flatTop) {
+      int[][] axialDirs = {{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}};
+      qOffset = axialDirs[lado][0];
+      rOffset = axialDirs[lado][1];
+    } else {
+      int[][] axialDirs = {{0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}, {1, 0}};
+      qOffset = axialDirs[lado][0];
+      rOffset = axialDirs[lado][1];
+    }
+
+    // dibujamos 1 o 2 hexágonos desde el borde hacia fuera
+    for (int step = 0; step < 2; step++) {
+      int q = qOffset * (layers - 1 + step);
+      int r = rOffset * (layers - 1 + step);
+
+      Point p = HexUtils.hexToPixel(q, r, radius, flatTop, true);
+      g2.setColor(new Color(50, 50, 50)); // oscuro
+      g2.fill( HexTilePanel.generateHexPath(true, cx + p.x, cy + p.y, radius, layers, flatTop));
+    }
   }
 }

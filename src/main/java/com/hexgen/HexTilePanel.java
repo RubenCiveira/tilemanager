@@ -227,8 +227,8 @@ public class HexTilePanel extends JPanel {
     PasilloRenderer.drawPasilloDecoracion(g2, cx, cy, radius, layers, flatTop);
   }
 
-  private Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
-      boolean flatTop) {
+  public static Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
+      long layers, boolean flatTop) {
     if (inner && layers % 2 != 0) {
       cx -= radius;
     } else if (inner) {
@@ -246,7 +246,12 @@ public class HexTilePanel extends JPanel {
         hex.lineTo(dx, dy);
     }
     hex.closePath();
-    return hex;
+    return hex; 
+  }
+  
+  public Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
+      boolean flatTop) {
+    return generateHexPath(inner, cx, cy, radius, layers, flatTop);
   }
 
   private void drawOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
