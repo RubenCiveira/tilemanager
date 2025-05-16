@@ -26,11 +26,13 @@ public class ControlPanel extends JPanel {
   private static final long serialVersionUID = -7530321440889095447L;
 
   public ControlPanel(HexTilePanel hexPanel) {
+    boolean advanced = false;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
     setPreferredSize(new Dimension(260, 600)); // máximo 1/3 aprox
     setAlignmentY(Component.TOP_ALIGNMENT);
 
+    
     JLabel orientationLabel = new JLabel("Orientación:");
     String[] orientations = {"Lado arriba", "Punta arriba"};
     JComboBox<String> orientationCombo = new JComboBox<>(orientations);
@@ -38,7 +40,6 @@ public class ControlPanel extends JPanel {
     orientationCombo
         .addActionListener(e -> hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0));
     hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0);
-
 
     JLabel layersLabel = new JLabel("Número de anillos:");
     JSpinner layerSpinner = new JSpinner(new SpinnerNumberModel(2, 1, 5, 1));
@@ -61,18 +62,21 @@ public class ControlPanel extends JPanel {
     hexPanel.setTileType(tipos[tipoCombo.getSelectedIndex()]);
 
     JLabel cantidadLabel = new JLabel("Cantidad:");
-    JSpinner cantidadSpinner = new JSpinner(new SpinnerNumberModel(12, 1, 200, 1));
+    JSpinner cantidadSpinner = new JSpinner(new SpinnerNumberModel(6, 1, 200, 1));
     cantidadSpinner.setMaximumSize(
         new Dimension(Integer.MAX_VALUE, cantidadSpinner.getPreferredSize().height));
     cantidadSpinner.addChangeListener(e -> hexPanel.setTileCount((int) cantidadSpinner.getValue()));
     hexPanel.setTileCount((int) cantidadSpinner.getValue());
 
-    add(orientationLabel);
-    add(orientationCombo);
-    add(layersLabel);
-    add(layerSpinner);
-    add(radiusLabel);
-    add(radiusSpinner);
+    // El calculo de intersecciones es muy delicado, no dejemos configurar esto.
+    if( advanced ) {
+      add(orientationLabel);
+      add(orientationCombo);
+      add(layersLabel);
+      add(layerSpinner);
+      add(radiusLabel);
+      add(radiusSpinner);
+    }
     add(tipoLabel);
     add(tipoCombo);
     add(cantidadLabel);

@@ -1,15 +1,12 @@
 package com.hexgen;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
+import com.hexgen.model.Loseta;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Image;
@@ -32,7 +30,6 @@ public class HexTilePanel extends JPanel {
   private String tileType = "Pasillo";
   private int totalToPrint = 12;
   private List<BufferedImage> renderedPages = new ArrayList<>();
-
 
   public void setTileType(String type) {
     this.tileType = type;
@@ -145,7 +142,13 @@ public class HexTilePanel extends JPanel {
 
         int centerX = offsetX + col * (losetaWidth + spacing) + losetaWidth / 2;
         int centerY = offsetY + row * (losetaHeight + spacing) + losetaHeight / 2;
-        drawLoseta(g2, centerX, centerY);
+
+        Loseta los = new Loseta();
+        los.setFlatTop(flatTop);
+        los.setRadius(radius);
+        los.setLayers(layers);
+        los.setTileType(tileType);
+        los.drawLoseta(g2, centerX, centerY);
         printed++;
       }
     }
@@ -195,75 +198,11 @@ public class HexTilePanel extends JPanel {
 
     int cols = Math.max(1, (usableWidth + spacing) / (losetaWidth + spacing));
     int rows = Math.max(1, (usableHeight + spacing) / (losetaHeight + spacing));
-    
-    System.out.println("Calculando w a " + usableWidth + " entre " + losetaWidth + " = " + ( usableWidth / losetaWidth )  );
-    System.out.println("Calculando h a " + usableHeight + " entre " + losetaHeight + " = " + ( usableHeight / losetaHeight )  );
-    
+
     int losetasPorFolio = cols * rows;
     int foliosNecesarios = (int) Math.ceil((double) totalToPrint / losetasPorFolio);
 
     return new Object[] {pageWidth, pageHeight, foliosNecesarios, contentMargin};
-  }
-
-
-  private void drawLoseta(Graphics2D g2, int cx, int cy) {
-    setBackground(Color.WHITE);
-
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setColor(Color.GRAY);
-    g2.setStroke(new BasicStroke(1));
-
-    // Creamos el contorno del hexágono exterior como Shape
-    clipOuterBoundary(g2, cx, cy, radius, layers);
-    for (int q = -layers; q <= layers; q++) {
-      int r1 = Math.max(-layers, -q - layers);
-      int r2 = Math.min(layers, -q + layers);
-      for (int r = r1; r <= r2; r++) {
-        Point p = HexUtils.hexToPixel(q, r, radius, flatTop, true);
-        drawHex(g2, cx + p.x, cy + p.y, radius);
-      }
-    }
-    drawOuterBoundary(g2, cx, cy, radius, layers);
-    PasilloRenderer.drawPasilloDecoracion(g2, cx, cy, radius, layers, flatTop);
-  }
-
-  public static Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
-      long layers, boolean flatTop) {
-    if (inner && layers % 2 != 0) {
-      cx -= radius;
-    } else if (inner) {
-      cx += radius;
-    }
-
-    Path2D hex = new Path2D.Double();
-    for (int i = 0; i < 6; i++) {
-      double angle = Math.toRadians(flatTop ? (60 * i) : (60 * i - 30));
-      double dx = cx + radius * Math.cos(angle);
-      double dy = cy + radius * Math.sin(angle);
-      if (i == 0)
-        hex.moveTo(dx, dy);
-      else
-        hex.lineTo(dx, dy);
-    }
-    hex.closePath();
-    return hex; 
-  }
-  
-  public Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
-      boolean flatTop) {
-    return generateHexPath(inner, cx, cy, radius, layers, flatTop);
-  }
-
-  private void drawOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
-    g2.draw(generateHexPath(false, cx, cy, radius * layers, flatTop));
-  }
-
-  private void clipOuterBoundary(Graphics2D g2, int cx, int cy, int radius, int layers) {
-    g2.setClip(generateHexPath(false, cx, cy, radius * layers, flatTop));
-  }
-
-  private void drawHex(Graphics2D g2, int x, int y, int radius) {
-    g2.draw(generateHexPath(true, x, y, radius, flatTop));
   }
 
   private void refresh() {
@@ -274,7 +213,7 @@ public class HexTilePanel extends JPanel {
     revalidate();
     repaint();
   }
-  
+
   private List<BufferedImage> generateImages(int dpi, boolean withMargin) {
     List<BufferedImage> images = new ArrayList<>();
     Object[] dim = dimensions(dpi, withMargin);
