@@ -26,13 +26,12 @@ public class ControlPanel extends JPanel {
   private static final long serialVersionUID = -7530321440889095447L;
 
   public ControlPanel(HexTilePanel hexPanel) {
-    boolean advanced = false;
+    boolean advanced = true;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
     setPreferredSize(new Dimension(260, 600)); // máximo 1/3 aprox
     setAlignmentY(Component.TOP_ALIGNMENT);
 
-    
     JLabel orientationLabel = new JLabel("Orientación:");
     String[] orientations = {"Lado arriba", "Punta arriba"};
     JComboBox<String> orientationCombo = new JComboBox<>(orientations);
