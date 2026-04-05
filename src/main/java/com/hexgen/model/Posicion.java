@@ -33,7 +33,7 @@ public class Posicion {
 
   public void drawDecoration(Graphics2D g2, int cx, int cy) {
     Point offset = HexUtils.hexToPixel(axial.x, axial.y, radius, flatTop);
-    double centerX = cx + offset.x + (layers % 2 != 0 ? -radius : radius);
+    double centerX = cx + offset.x + HexUtils.getInnerCenterShift(radius, layers);
     double centerY = cy + offset.y;
 
     double r = radius;
@@ -177,7 +177,7 @@ public class Posicion {
 
   private void addNumber(Graphics2D g2, int cx, int cy) {
     Point p = HexUtils.hexToPixel(axial.x, axial.y, radius, flatTop);
-    int px = cx + p.x + (layers % 2 != 0 ? -radius : radius);
+    int px = (int) Math.round(cx + p.x + HexUtils.getInnerCenterShift(radius, layers));
     int py = cy + p.y;
 
     // Configurar fuente y estilo

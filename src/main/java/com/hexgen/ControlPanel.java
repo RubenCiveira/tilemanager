@@ -48,9 +48,7 @@ public class ControlPanel extends JPanel {
     hexPanel.setFlatTop(orientationCombo.getSelectedIndex() == 0);
 
     JLabel layersLabel = new JLabel("Número de anillos:");
-    JSpinner layerSpinner = new JSpinner(new SpinnerNumberModel(3, 1, 5, 2));
-    // Solo valores impares (1, 3, 5): con valores pares el borde exterior pasa
-    // por los centros de las celdas del perímetro, solapando las celdas de losetas adyacentes.
+    JSpinner layerSpinner = new JSpinner(new SpinnerNumberModel(3, 1, 8, 1));
     layerSpinner.addChangeListener(e -> hexPanel.setLayers((int) layerSpinner.getValue()));
     hexPanel.setLayers((int) layerSpinner.getValue());
 

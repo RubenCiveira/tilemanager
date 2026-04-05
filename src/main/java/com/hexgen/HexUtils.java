@@ -44,12 +44,10 @@ public class HexUtils {
 
   public static Path2D generateHexPath(boolean inner, double cx, double cy, double radius,
       long layers, boolean flatTop) {
-    if (inner && layers % 2 != 0) {
-      cx -= radius;
-    } else if (inner) {
-      cx += radius;
+    if (inner) {
+      cx += getInnerCenterShift(radius, layers);
     }
-
+    
     Path2D hex = new Path2D.Double();
     for (int i = 0; i < 6; i++) {
       double angle = Math.toRadians(flatTop ? (60 * i) : (60 * i - 30));
@@ -62,6 +60,10 @@ public class HexUtils {
     }
     hex.closePath();
     return hex;
+  }
+
+  public static double getInnerCenterShift(double radius, long layers) {
+    return layers % 2 != 0 ? -radius : 0;
   }
 
   public static void debugPath(Path2D path, String nombre) {
