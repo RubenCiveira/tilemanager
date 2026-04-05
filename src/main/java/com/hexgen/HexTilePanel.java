@@ -28,11 +28,17 @@ public class HexTilePanel extends JPanel {
   private int layers = 2;
   private boolean flatTop = true;
   private String tileType = "Pasillo";
+  private boolean esquematico = true;
   private int totalToPrint = 12;
   private List<BufferedImage> renderedPages = new ArrayList<>();
 
   public void setTileType(String type) {
     this.tileType = type;
+    refresh();
+  }
+
+  public void setEsquematico(boolean esquematico) {
+    this.esquematico = esquematico;
     refresh();
   }
 
@@ -42,7 +48,7 @@ public class HexTilePanel extends JPanel {
   }
 
   public void setRadius(int radius) {
-    this.radius = (int) Math.floor(1.65 * (double) radius);
+    this.radius = (int) Math.floor(1.6 * (double) radius);
     refresh();
   }
 
@@ -148,6 +154,7 @@ public class HexTilePanel extends JPanel {
         los.setRadius(radius);
         los.setLayers(layers);
         los.setTileType(tileType);
+        los.setEsquematico(esquematico);
         los.drawLoseta(g2, centerX, centerY);
         printed++;
       }
@@ -156,14 +163,14 @@ public class HexTilePanel extends JPanel {
   }
 
   private int getLosetaAncho() {
-    int sz = layers; // o layers, si aún usas ese nombre
+    int sz = layers;
     return flatTop ? (int) (radius * 1.2 * (2 * sz - 1))
-        : (int) (radius * Math.sqrt(3) * (layers + 0.5));
+        : (int) (radius * Math.sqrt(3) * (layers + 0.05));
   }
 
   private int getLosetaAlto() {
     int sz = layers;
-    return flatTop ? (int) (radius * Math.sqrt(3) * (layers + 0.5))
+    return flatTop ? (int) (radius * Math.sqrt(3) * (layers + 0.05))
         : (int) (radius * 1.2 * (2 * sz - 1));
   }
 

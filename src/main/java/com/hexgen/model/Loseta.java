@@ -27,8 +27,9 @@ public class Loseta {
   private List<Posicion> posiciones = new ArrayList<>();
   private Map<Point, Posicion> lookup = new HashMap<>();
   private Set<Integer> ladosConPuertas = new HashSet<>();
-  private Integer ladoAbierto;
+  private Set<Integer> ladosAbiertos = new HashSet<>();
   private Integer ladoEntrada;
+  private boolean esquematico = true;
 
   public int getRadius() {
     return radius;
@@ -104,7 +105,7 @@ public class Loseta {
       Color color = null;// Color.RED; // "Nada"
       if (lado == ladoEntrada) {
         color = Color.GREEN;
-      } else if (null != ladoAbierto && lado == ladoAbierto) {
+      } else if (ladosAbiertos.contains(lado)) {
         color = Color.BLUE;
       } else if (ladosConPuertas.contains(lado)) {
         color = Color.RED;
@@ -164,12 +165,12 @@ public class Loseta {
     this.ladosConPuertas = ladosConPuertas;
   }
 
-  public Integer getLadoAbierto() {
-    return ladoAbierto;
+  public Set<Integer> getLadosAbiertos() {
+    return ladosAbiertos;
   }
 
-  public void setLadoAbierto(Integer ladoAbierto) {
-    this.ladoAbierto = ladoAbierto;
+  public void setLadosAbiertos(Set<Integer> ladosAbiertos) {
+    this.ladosAbiertos = ladosAbiertos;
   }
 
   public Integer getLadoEntrada() {
@@ -178,5 +179,13 @@ public class Loseta {
 
   public void setLadoEntrada(Integer ladoEntrada) {
     this.ladoEntrada = ladoEntrada;
+  }
+
+  public boolean isEsquematico() {
+    return esquematico;
+  }
+
+  public void setEsquematico(boolean esquematico) {
+    this.esquematico = esquematico;
   }
 }

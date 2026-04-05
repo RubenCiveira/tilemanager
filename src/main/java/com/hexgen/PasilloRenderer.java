@@ -9,60 +9,67 @@ import java.util.Set;
 import com.hexgen.model.Loseta;
 
 public class PasilloRenderer {
-  private static double straitProbability = 0.70;
-  private static double mainProbability = 0.70;
-  private static double secondProbability = 0.15;
-  private static double terthProbability = 0.05;
+
+  private static final Random rnd = new Random();
+
+  // Probabilidades de puertas (rojo) en lados no especiales
+  private static final double PROB_PUERTA_PRIMER_EXTRA = 0.15;
+  private static final double PROB_PUERTA_SEGUNDO_EXTRA = 0.05;
 
   public static void drawPasilloDecoracion(Loseta loseta) {
     int entradaLado = 0;
-    int ladoFrente = -1;
+    int numAzules = determinarNumAzules(loseta.getTileType());
+
+    Set<Integer> ladosAbiertos = new HashSet<>();
     Set<Integer> puertas = new HashSet<>();
-    
-    Random rnd = new Random();
 
-    Set<Integer> ladosConPuerta = new HashSet<>();
+    List<Integer> ladosDisponibles = new ArrayList<>(List.of(1, 2, 3, 4, 5));
+    Collections.shuffle(ladosDisponibles);
 
-    List<String> posiblesSalidas = new ArrayList<>(List.of("1", "2", "3", "4", "5"));
-    Collections.shuffle(posiblesSalidas);
-
-    ladosConPuerta.add(entradaLado);
-
-    if (rnd.nextDouble() < mainProbability) {
-      ladoFrente = (entradaLado + 3) % 6;
-      if( rnd.nextDouble() > straitProbability ) {
-        ladoFrente = Integer.parseInt( posiblesSalidas.remove(0) );
+    // Para pasillos, preferir el lado de enfrente (lado 3, opuesto a entrada 0)
+    if (numAzules == 1 && esPasillo(loseta.getTileType())) {
+      if (rnd.nextDouble() < 0.70) {
+        ladosAbiertos.add(3);
+        ladosDisponibles.remove(Integer.valueOf(3));
       } else {
-        posiblesSalidas.remove(ladoFrente);
+        ladosAbiertos.add(ladosDisponibles.remove(0));
       }
-      ladosConPuerta.add(ladoFrente);
+    } else {
+      for (int i = 0; i < numAzules && !ladosDisponibles.isEmpty(); i++) {
+        ladosAbiertos.add(ladosDisponibles.remove(0));
+      }
     }
 
-    while (!posiblesSalidas.isEmpty()) {
-      double num = rnd.nextDouble();
-      double currentProb = 0;
-      switch (ladosConPuerta.size()) {
-        case 1:
-          currentProb = mainProbability;
-          break;
-        case 2:
-          currentProb = secondProbability;
-          break;
-        case 3:
-          currentProb = terthProbability;
-          break;
-      };
-      boolean ok = num < currentProb;
-      int salidaLado = Integer.parseInt( posiblesSalidas.remove(0) );
-      if (ok) {
-        puertas.add( salidaLado );
-        ladosConPuerta.add(salidaLado);
+    // Añadir puertas (rojo) en algunos lados restantes
+    int puertasExtra = 0;
+    for (int lado : ladosDisponibles) {
+      double prob = puertasExtra == 0 ? PROB_PUERTA_PRIMER_EXTRA : PROB_PUERTA_SEGUNDO_EXTRA;
+      if (rnd.nextDouble() < prob) {
+        puertas.add(lado);
+        puertasExtra++;
       }
     }
-    loseta.setLadoEntrada( entradaLado );
-    if( ladoFrente != -1 ) {
-      loseta.setLadoAbierto( ladoFrente );
-    }
-    loseta.setLadosConPuertas( puertas );
+
+    loseta.setLadoEntrada(entradaLado);
+    loseta.setLadosAbiertos(ladosAbiertos);
+    loseta.setLadosConPuertas(puertas);
+  }
+
+  private static boolean esPasillo(String tileType) {
+    return "Pasillos".equals(tileType) || "Pasillos angostos".equals(tileType);
+  }
+
+  private static int determinarNumAzules(String tileType) {
+    return switch (tileType) {
+      case "Pasillos angostos" -> 0;
+      case "Pasillos" -> rnd.nextDouble() < 0.70 ? 1 : 0;
+      case "Salas pequeñas" -> rnd.nextDouble() < 0.60 ? 1 : 2;
+      case "Salas grandes" -> rnd.nextDouble() < 0.60 ? 2 : 3;
+      case "Salas muy grandes" -> {
+        double r = rnd.nextDouble();
+        yield r < 0.20 ? 2 : (r < 0.70 ? 3 : 4);
+      }
+      default -> rnd.nextDouble() < 0.70 ? 1 : 0;
+    };
   }
 }

@@ -33,7 +33,7 @@ public class Posicion {
 
   public void drawDecoration(Graphics2D g2, int cx, int cy) {
     Point offset = HexUtils.hexToPixel(axial.x, axial.y, radius, flatTop);
-    double centerX = cx + offset.x - radius;
+    double centerX = cx + offset.x + (layers % 2 != 0 ? -radius : radius);
     double centerY = cy + offset.y;
 
     double r = radius;
@@ -79,7 +79,7 @@ public class Posicion {
   public Elemento getElemento() {
     if (lateral.contains(loseta.getLadoEntrada())) {
       return new Entrada();
-    } else if (lateral.contains(loseta.getLadoAbierto())) {
+    } else if (loseta.getLadosAbiertos().stream().anyMatch(lateral::contains)) {
       return new Salida();
     } else if (loseta.getLadosConPuertas().stream().anyMatch(lateral::contains)) {
       return new Puerta();
@@ -140,14 +140,14 @@ public class Posicion {
           }
         }
       }
-      if (attached != null && merged != null) {
-        self.paintMerged(g2, centroBase, triangulo, attached, merged);
-      } else if (null != attached) {
-        self.paintAttached(g2, centroBase, triangulo, attached);
-        // } else if( null != merged ) {
-        // self.paintAttached(g2, centroBase, triangulo, merged);
-      } else {
-        self.paint(g2, centroBase, triangulo);
+      if (loseta.isEsquematico()) {
+        if (attached != null && merged != null) {
+          self.paintMerged(g2, centroBase, triangulo, attached, merged);
+        } else if (null != attached) {
+          self.paintAttached(g2, centroBase, triangulo, attached);
+        } else {
+          self.paint(g2, centroBase, triangulo);
+        }
       }
     }
     if (debug) {
@@ -177,7 +177,7 @@ public class Posicion {
 
   private void addNumber(Graphics2D g2, int cx, int cy) {
     Point p = HexUtils.hexToPixel(axial.x, axial.y, radius, flatTop);
-    int px = cx + p.x - radius;
+    int px = cx + p.x + (layers % 2 != 0 ? -radius : radius);
     int py = cy + p.y;
 
     // Configurar fuente y estilo
